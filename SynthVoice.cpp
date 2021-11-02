@@ -48,10 +48,21 @@ void SynthVoice::controllerMoved(int controllerNumber, int newControllerValue)
 
 void SynthVoice::renderNextBlock(juce::AudioBuffer <float> &outputBuffer, int startSample, int numSamples)
 {
-    
+    for (int i = startSample; i < (startSample + numSamples); i++) {
+        float value = std::sin(currentAngle) * level;
+        outputBuffer.addSample(0, i, value);
+        outputBuffer.addSample(1, i, value);
+        
+        currentAngle += angleIncrement;
+    }
 }
 
 void SynthVoice::setLevel(float newLevel)
 {
     level = newLevel;
+}
+
+void SynthVoice::setMode(int newMode)
+{
+    mode = newMode;
 }

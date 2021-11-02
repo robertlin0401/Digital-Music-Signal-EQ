@@ -17,6 +17,13 @@ MyAudioProcessorEditor::MyAudioProcessorEditor(MyAudioProcessor& p)
 {
     setSize(600, 600);
 
+    comboBox.addItem("none", 1);
+    comboBox.addItem("bulit-in", 2);
+    comboBox.addItem("self-made", 3);
+    modeComboBoxAttachment.reset(new juce::AudioProcessorValueTreeState::ComboBoxAttachment(
+        audioProcessor.tree, "mode", comboBox
+    ));
+
     for (auto &subcomponent : subcomponents) {
         addAndMakeVisible(subcomponent);
     }
@@ -38,6 +45,7 @@ void MyAudioProcessorEditor::resized()
     juce::FlexBox flexBox;
     flexBox.flexDirection = juce::FlexBox::Direction::column;
     flexBox.items.add(juce::FlexItem(sliderContainer).withFlex(1.5f));
+    flexBox.items.add(juce::FlexItem(comboBox).withFlex(0.5f));
     flexBox.items.add(juce::FlexItem(spectrum).withFlex(3.0f));
     flexBox.performLayout(area.reduced(10));
     for (auto &subcomponent : subcomponents) {
