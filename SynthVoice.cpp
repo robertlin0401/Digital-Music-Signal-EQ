@@ -49,11 +49,10 @@ void SynthVoice::controllerMoved(int controllerNumber, int newControllerValue)
 void SynthVoice::renderNextBlock(juce::AudioBuffer <float> &outputBuffer, int startSample, int numSamples)
 {
     for (int i = startSample; i < (startSample + numSamples); i++) {
-        float value = std::sin(currentAngle) * level;
+        float value = random.nextFloat() * 0.25f - 0.125f;
+        value *= level;
         outputBuffer.addSample(0, i, value);
         outputBuffer.addSample(1, i, value);
-        
-        currentAngle += angleIncrement;
     }
 }
 

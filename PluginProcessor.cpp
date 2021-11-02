@@ -23,7 +23,7 @@ MyAudioProcessor::MyAudioProcessor()
             std::make_unique<juce::AudioParameterFloat>(
                 "level",
                 "Level",
-                juce::NormalisableRange<float>(0.0f, 1.0f, 0.1f), 0.0f,
+                juce::NormalisableRange<float>(0.0f, 10.0f, 0.5f), 0.0f,
                 juce::String(),
                 juce::AudioProcessorParameter::genericParameter,
                 [](float value, int){ return juce::String(value); },

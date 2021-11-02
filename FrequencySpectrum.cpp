@@ -15,7 +15,7 @@ FrequencySpectrum::FrequencySpectrum(MyAudioProcessor &p)
     : audioProcessor(p),
       spectrum(p.getSingleChannelSampleFifo())
 {
-    fftDataGenerator.changeOrder(10);
+    fftDataGenerator.changeOrder(12);
     pathBuffer.setSize(1, fftDataGenerator.getFFTSize());
     startTimerHz(30);
 }

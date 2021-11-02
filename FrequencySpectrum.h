@@ -57,7 +57,8 @@ private:
     {
         std::vector<float> xs;
         for (auto f : freqs) {
-            auto normX = juce::mapFromLog10(f, 20.f, 20000.f);
+            // auto normX = juce::mapFromLog10(f, 20.f, 20000.f);
+            auto normX = (f - 20.f) / (20000.f - 20.f);
             xs.push_back(left + width * normX);
         }
         return xs;

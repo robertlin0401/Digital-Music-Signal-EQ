@@ -32,6 +32,7 @@ public:
     void setMode(int newMode);
     
 private:
+    juce::Random random;
     float level;
     float frequency;
     int noteMidiNumber;
