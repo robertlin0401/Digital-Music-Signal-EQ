@@ -38,5 +38,4 @@ private:
     float currentAngle;
     float angleIncrement;
     float tailOff;
-    int mode;
 };
