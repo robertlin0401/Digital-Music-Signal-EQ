@@ -48,12 +48,21 @@ void SynthVoice::controllerMoved(int controllerNumber, int newControllerValue)
 
 void SynthVoice::renderNextBlock(juce::AudioBuffer <float> &outputBuffer, int startSample, int numSamples)
 {
-    for (int i = startSample; i < (startSample + numSamples); i++) {
-        float value = random.nextFloat() * 0.25f - 0.125f;
-        value *= level;
-        outputBuffer.addSample(0, i, value);
-        outputBuffer.addSample(1, i, value);
-    }
+    float value;
+    if (mode == 0) // without filter
+        for (int i = startSample; i < (startSample + numSamples); i++) {
+            value = random.nextFloat() * 0.25f - 0.125f;
+            value *= level;
+            outputBuffer.addSample(0, i, value);
+            outputBuffer.addSample(1, i, value);
+        }
+    else if (mode == 1) // with filter
+        for (int i = startSample; i < (startSample + numSamples); i++) {
+            value = random.nextFloat() * 0.25f - 0.125f;
+            value *= level;
+            outputBuffer.addSample(0, i, value);
+            outputBuffer.addSample(1, i, value);
+        }
 }
 
 void SynthVoice::setLevel(float newLevel)

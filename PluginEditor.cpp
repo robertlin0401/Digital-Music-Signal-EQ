@@ -19,7 +19,6 @@ MyAudioProcessorEditor::MyAudioProcessorEditor(MyAudioProcessor& p)
 
     comboBox.addItem("none", 1);
     comboBox.addItem("bulit-in", 2);
-    comboBox.addItem("self-made", 3);
     modeComboBoxAttachment.reset(new juce::AudioProcessorValueTreeState::ComboBoxAttachment(
         audioProcessor.tree, "mode", comboBox
     ));
