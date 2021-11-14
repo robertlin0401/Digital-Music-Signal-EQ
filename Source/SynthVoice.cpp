@@ -11,48 +11,41 @@
 #include "SynthVoice.h"
 #include <vector>
 #include <cmath>
-# define MY_PI 3.14159265358979323846
+#define MY_PI 3.14159265358979323846
 
-SynthVoice::SynthVoice() {
-	cutoff = 5000.0;
-	order = 15 ;
+SynthVoice::SynthVoice()
+{
+	cutoff = 5000.0f;
+	order = 15;
 
 	// Construct impulse response of Low Pass Filter (FIR)
 	fc = cutoff / getSampleRate();
 	float impulse_response_sum = 0.0;
 
-	for (int i = -(order-1)/2; i < (order+1)/2; i++)
-	{
-		if (i != 0) {
-			h.push_back(sin(2 * fc*i*MY_PI) / (2 * fc*i*MY_PI));
-		}
-		else {
+	for (int i = -(order-1)/2; i < (order+1)/2; i++) {
+		if (i != 0)
+			h.push_back(sin(2 * fc * i * MY_PI) / (2 * fc * i * MY_PI));
+		else
 			h.push_back(1.0);
-		}
-	}
-	// Construct a Blackman Window
-	for (int i = 0; i < order; i++)
-	{
-		window.push_back(0.42 - 0.5 * cos(2 * MY_PI * i / (order-1)) + 0.08*cos(4 * MY_PI * i / (order-1))) ;
 	}
 
-	// Windowed-Sinc Filter
+	// Construct a Blackman Window
 	for (int i = 0; i < order; i++)
-	{
+		window.push_back(0.42 - 0.5 * cos(2 * MY_PI * i / (order - 1)) + 0.08 * cos(4 * MY_PI * i / (order - 1))) ;
+
+	// Windowed-Sinc Filter
+	for (int i = 0; i < order; i++) {
 		h.at(i) = h.at(i) * window.at(i);
 		impulse_response_sum += h.at(i);
 	}
 
 	// Normalized windowed-sinc filter
 	for (int i = 0; i < order; i++)
-	{
 		h.at(i) /= impulse_response_sum;
-	}
 
 	// Initialize the first few input signal to 0
-	for (int i = 0; i < order; i++) {
+	for (int i = 0; i < order; i++)
 		x.push_back(0);		
-	}
 }
 
 bool SynthVoice::canPlaySound(juce::SynthesiserSound* sound)
@@ -110,9 +103,8 @@ void SynthVoice::renderNextBlock(juce::AudioBuffer <float> &outputBuffer, int st
 
 			value = 0.0;
 			for (int j = 0; j < order; j++)
-			{
 				value += x.at(j) * h.at(j);
-			}
+            
             outputBuffer.addSample(0, i, value);
             outputBuffer.addSample(1, i, value);
         }

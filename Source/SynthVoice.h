@@ -16,6 +16,7 @@ class SynthVoice : public juce::SynthesiserVoice
 {
 public:
 	SynthVoice();
+
     bool canPlaySound(juce::SynthesiserSound* sound) override;
     
     void startNote(int midiNoteNumber, float velocity, juce::SynthesiserSound* sound, int currentPitchWheelPosition) override;
@@ -47,8 +48,8 @@ private:
     int mode;
 
 	int order;
-	float cutoff, fc;       //cutoff(Hz)¡Bfc = cutoff/sampleRate
-	std::vector <float> h;  //impulse response
-	std::vector <float> x;  //input signal
+	float cutoff, fc;       // cutoff(Hz), fc = cutoff/sampleRate
+	std::vector <float> h;  // impulse response
+	std::vector <float> x;  // input signal
 	std::vector <float> window;
 };
