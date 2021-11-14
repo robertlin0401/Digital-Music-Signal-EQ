@@ -18,7 +18,7 @@ MyAudioProcessorEditor::MyAudioProcessorEditor(MyAudioProcessor& p)
     setSize(600, 600);
 
     comboBox.addItem("none", 1);
-    comboBox.addItem("bulit-in", 2);
+    comboBox.addItem("LPF", 2);
     modeComboBoxAttachment.reset(new juce::AudioProcessorValueTreeState::ComboBoxAttachment(
         audioProcessor.tree, "mode", comboBox
     ));
