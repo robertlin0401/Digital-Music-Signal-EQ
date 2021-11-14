@@ -31,6 +31,10 @@ public:
     void setLevel(float newLevel);
 
     void setMode(int newMode);
+
+	void setOrder(int newOrder);
+
+	void setCutoff(float newCutoff);
     
 private:
     juce::Random random;
@@ -41,10 +45,10 @@ private:
     float angleIncrement;
     float tailOff;
     int mode;
-	
+
+	int order;
 	float cutoff, fc;       //cutoff(Hz)¡Bfc = cutoff/sampleRate
 	std::vector <float> h;  //impulse response
 	std::vector <float> x;  //input signal
-
-	float impulse_response, impulse_response_sum;
+	std::vector <float> window;
 };
