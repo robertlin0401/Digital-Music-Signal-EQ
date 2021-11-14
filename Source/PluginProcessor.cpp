@@ -36,13 +36,14 @@ MyAudioProcessor::MyAudioProcessor()
                 juce::AudioProcessorParameter::genericParameter,
                 [](float value, int){ return juce::String(value); },
                 [](juce::String text){ return text.getFloatValue(); }),
-            std::make_unique<juce::AudioParameterInt>(
+            std::make_unique<juce::AudioParameterFloat>(
                 "order",
                 "Order",
-                15, 99, 15,
+                juce::NormalisableRange<float>(15.0f, 99.0f, 2.0f), 15.0f,
                 juce::String(),
-                [](int value, int){ return juce::String(value); },
-                [](juce::String text){ return text.getIntValue(); }),
+                juce::AudioProcessorParameter::genericParameter,
+                [](float value, int){ return juce::String(value); },
+                [](juce::String text){ return text.getFloatValue(); }),
             std::make_unique<juce::AudioParameterChoice>(
                 "mode",
                 "Mode",
