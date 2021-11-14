@@ -9,6 +9,35 @@
 */
 
 #include "SynthVoice.h"
+#include <vector>
+#include <cmath>
+# define MY_PI 3.14159265358979323846
+
+SynthVoice::SynthVoice() {
+
+	// Construct impulse response
+	cutoff = 5000.0;
+	fc = cutoff / getSampleRate();
+	impulse_response_sum = 0.0;
+
+	for (int i = -15; i < 16; i++)
+	{
+		if (i != 0) {
+			impulse_response =  sin(2*fc*i*MY_PI) / (2*fc*i*MY_PI);
+			h.push_back(impulse_response);
+			impulse_response_sum += impulse_response;
+		}
+		else {
+			h.push_back(1.0);
+			impulse_response_sum += 1.0;
+		}
+	}
+
+	// Initial the first few input signal to 0
+	for (int i = 0; i < 31; i++) {
+		x.push_back(0);		
+	}
+}
 
 bool SynthVoice::canPlaySound(juce::SynthesiserSound* sound)
 {
@@ -60,6 +89,14 @@ void SynthVoice::renderNextBlock(juce::AudioBuffer <float> &outputBuffer, int st
         for (int i = startSample; i < (startSample + numSamples); i++) {
             value = random.nextFloat() * 0.25f - 0.125f;
             value *= level;
+			x.erase(x.begin());
+			x.push_back(value);
+			value = 0.0;
+			for (int j = 0; j < 31; j++)
+			{
+				value += x.at(j) * h.at(j);
+			}
+			value /= impulse_response_sum;
             outputBuffer.addSample(0, i, value);
             outputBuffer.addSample(1, i, value);
         }
