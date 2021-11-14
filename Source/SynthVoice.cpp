@@ -18,34 +18,7 @@ SynthVoice::SynthVoice()
 	cutoff = 5000.0f;
 	order = 15;
 
-	// Construct impulse response of Low Pass Filter (FIR)
-	fc = cutoff / getSampleRate();
-	float impulse_response_sum = 0.0;
-
-	for (int i = -(order-1)/2; i < (order+1)/2; i++) {
-		if (i != 0)
-			h.push_back(sin(2 * fc * i * MY_PI) / (2 * fc * i * MY_PI));
-		else
-			h.push_back(1.0);
-	}
-
-	// Construct a Blackman Window
-	for (int i = 0; i < order; i++)
-		window.push_back(0.42 - 0.5 * cos(2 * MY_PI * i / (order - 1)) + 0.08 * cos(4 * MY_PI * i / (order - 1))) ;
-
-	// Windowed-Sinc Filter
-	for (int i = 0; i < order; i++) {
-		h.at(i) = h.at(i) * window.at(i);
-		impulse_response_sum += h.at(i);
-	}
-
-	// Normalized windowed-sinc filter
-	for (int i = 0; i < order; i++)
-		h.at(i) /= impulse_response_sum;
-
-	// Initialize the first few input signal to 0
-	for (int i = 0; i < order; i++)
-		x.push_back(0);		
+    genFilter();
 }
 
 bool SynthVoice::canPlaySound(juce::SynthesiserSound* sound)
@@ -110,6 +83,43 @@ void SynthVoice::renderNextBlock(juce::AudioBuffer <float> &outputBuffer, int st
         }
 }
 
+void SynthVoice::genFilter()
+{
+    // clear vectors
+    x.clear();
+    h.clear();
+    window.clear();
+
+	// Initialize the first few input signal to 0
+	for (int i = 0; i < order; i++)
+		x.push_back(0);
+    
+	// Construct impulse response of Low Pass Filter (FIR)
+	fc = cutoff / getSampleRate();
+	float impulse_response_sum = 0.0f;
+
+	for (int i = -(order - 1) / 2; i <= order / 2; i++) {
+		if (i != 0)
+			h.push_back(sin(2 * fc * i * MY_PI) / (2 * fc * i * MY_PI));
+		else
+			h.push_back(1.0);
+	}
+
+	// Construct a Blackman Window
+	for (int i = 0; i < order; i++)
+		window.push_back(0.42 - 0.5 * cos(2 * MY_PI * i / (order - 1)) + 0.08 * cos(4 * MY_PI * i / (order - 1))) ;
+
+	// Windowed-Sinc Filter
+	for (int i = 0; i < order; i++) {
+		h.at(i) = h.at(i) * window.at(i);
+		impulse_response_sum += h.at(i);
+	}
+
+	// Normalized windowed-sinc filter
+	for (int i = 0; i < order; i++)
+		h.at(i) /= impulse_response_sum;
+}
+
 void SynthVoice::setLevel(float newLevel)
 {
     level = newLevel;
@@ -123,9 +133,11 @@ void SynthVoice::setMode(int newMode)
 void SynthVoice::setOrder(int newOrder)
 {
 	order = newOrder;
+    genFilter();
 }
 
 void SynthVoice::setCutoff(float newCutoff)
 {
 	cutoff = newCutoff;
+    genFilter();
 }

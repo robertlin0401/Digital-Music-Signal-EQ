@@ -28,13 +28,15 @@ public:
     void controllerMoved(int controllerNumber, int newControllerValue) override;
    
     void renderNextBlock(juce::AudioBuffer <float> &outputBuffer, int startSample, int numSamples) override;
+
+    void genFilter();
     
+	int getOrder() { return order; }
+	float getCutoff() { return cutoff; }
+
     void setLevel(float newLevel);
-
     void setMode(int newMode);
-
 	void setOrder(int newOrder);
-
 	void setCutoff(float newCutoff);
     
 private:

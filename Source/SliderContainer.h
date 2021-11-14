@@ -42,9 +42,9 @@ public:
 
 private:
     MyAudioProcessor &audioProcessor;
-    MySlider levelSlider;
+    MySlider levelSlider, frequencySlider, orderSlider;
 
-    std::vector<MySlider *> sliders { &levelSlider };
+    std::vector<MySlider *> sliders { &levelSlider, &frequencySlider, &orderSlider };
 
     JUCE_DECLARE_NON_COPYABLE_WITH_LEAK_DETECTOR(SliderContainer);
 };

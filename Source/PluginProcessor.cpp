@@ -28,6 +28,21 @@ MyAudioProcessor::MyAudioProcessor()
                 juce::AudioProcessorParameter::genericParameter,
                 [](float value, int){ return juce::String(value); },
                 [](juce::String text){ return text.getFloatValue(); }),
+            std::make_unique<juce::AudioParameterFloat>(
+                "f",
+                "F",
+                juce::NormalisableRange<float>(0.0f, 20000.0f, 1000.0f), 5000.0f,
+                juce::String(),
+                juce::AudioProcessorParameter::genericParameter,
+                [](float value, int){ return juce::String(value); },
+                [](juce::String text){ return text.getFloatValue(); }),
+            std::make_unique<juce::AudioParameterInt>(
+                "order",
+                "Order",
+                15, 99, 15,
+                juce::String(),
+                [](int value, int){ return juce::String(value); },
+                [](juce::String text){ return text.getIntValue(); }),
             std::make_unique<juce::AudioParameterChoice>(
                 "mode",
                 "Mode",
@@ -158,9 +173,15 @@ void MyAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer, juce::Midi
     for (auto i = totalNumInputChannels; i < totalNumOutputChannels; ++i)
         buffer.clear (i, 0, buffer.getNumSamples());
     
+    float newCutoff = tree.getRawParameterValue("f")->load();
+    int newOrder = tree.getRawParameterValue("order")->load();
     for (int i = 0; i < mySynth.getNumVoices(); i++) {
         auto* myVoice = dynamic_cast<SynthVoice*>(mySynth.getVoice(i));
         myVoice->setLevel(tree.getRawParameterValue("level")->load());
+        if (myVoice->getCutoff() != newCutoff)
+            myVoice->setCutoff(newCutoff);
+        if (myVoice->getOrder() != newOrder)
+            myVoice->setOrder(newOrder);
         myVoice->setMode(tree.getRawParameterValue("mode")->load());
     }
     mySynth.renderNextBlock(buffer, midiMessages, 0, buffer.getNumSamples());

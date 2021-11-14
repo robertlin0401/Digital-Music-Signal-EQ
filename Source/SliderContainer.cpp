@@ -45,7 +45,10 @@ void MySlider::resized()
 
 SliderContainer::SliderContainer(MyAudioProcessor &p)
     : audioProcessor(p),
-      levelSlider(p, "Level")
+      levelSlider(p, "level"),
+      frequencySlider(p, "f"),
+      orderSlider(p, "order")
+
 {    
     for (auto &slider : sliders) {
         addAndMakeVisible(slider);
