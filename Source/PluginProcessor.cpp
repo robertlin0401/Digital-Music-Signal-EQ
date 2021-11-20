@@ -47,7 +47,7 @@ MyAudioProcessor::MyAudioProcessor()
             std::make_unique<juce::AudioParameterChoice>(
                 "mode",
                 "Mode",
-                juce::StringArray({ "none", "low-pass" }), 0)
+                juce::StringArray({ "none", "low-pass", "FFT-low-pass" }), 0)
             })
 #endif
 {
@@ -176,6 +176,7 @@ void MyAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer, juce::Midi
     
     float newCutoff = tree.getRawParameterValue("f")->load();
     int newOrder = tree.getRawParameterValue("order")->load();
+    int newMode = tree.getRawParameterValue("mode")->load();
     for (int i = 0; i < mySynth.getNumVoices(); i++) {
         auto* myVoice = dynamic_cast<SynthVoice*>(mySynth.getVoice(i));
         myVoice->setLevel(tree.getRawParameterValue("level")->load());
@@ -183,7 +184,8 @@ void MyAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer, juce::Midi
             myVoice->setCutoff(newCutoff);
         if (myVoice->getOrder() != newOrder)
             myVoice->setOrder(newOrder);
-        myVoice->setMode(tree.getRawParameterValue("mode")->load());
+        if (myVoice->getMode() != newMode)
+            myVoice->setMode(newMode);
     }
     mySynth.renderNextBlock(buffer, midiMessages, 0, buffer.getNumSamples());
     singleChannelSampleFifo.update(buffer);

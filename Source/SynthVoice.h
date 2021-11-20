@@ -28,9 +28,8 @@ public:
     void controllerMoved(int controllerNumber, int newControllerValue) override;
    
     void renderNextBlock(juce::AudioBuffer <float> &outputBuffer, int startSample, int numSamples) override;
-
-    void genFilter();
     
+	int getMode() { return mode; }
 	int getOrder() { return order; }
 	float getCutoff() { return cutoff; }
 
@@ -40,12 +39,15 @@ public:
 	void setCutoff(float newCutoff);
     
 private:
-    juce::Random random;
+    void genFilter();
+    void genLowPass();
+    
     float level;
     int mode;
 	int order;
 	float cutoff, fc; // cutoff(Hz), fc = cutoff/sampleRate
 
+    juce::Random random;
 	std::vector <float> h;  // impulse response
 	std::vector <float> x;  // input signal
 	std::vector <float> window;

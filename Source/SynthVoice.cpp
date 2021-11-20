@@ -91,6 +91,9 @@ void SynthVoice::renderNextBlock(juce::AudioBuffer <float> &outputBuffer, int st
             outputBuffer.addSample(0, i, value);
             outputBuffer.addSample(1, i, value);
         }
+    else if (mode == 2) { // using FFT
+        
+    }
 }
 
 void SynthVoice::genFilter()
@@ -130,6 +133,11 @@ void SynthVoice::genFilter()
 		h.at(i) /= impulse_response_sum;
 }
 
+void SynthVoice::genLowPass()
+{
+
+}
+
 void SynthVoice::setLevel(float newLevel)
 {
     level = newLevel;
@@ -138,6 +146,13 @@ void SynthVoice::setLevel(float newLevel)
 void SynthVoice::setMode(int newMode)
 {
     mode = newMode;
+    switch (mode) {
+        case 0: case 1:
+            break;
+        case 2:
+            genLowPass();
+            break;
+    }
 }
 
 void SynthVoice::setOrder(int newOrder)

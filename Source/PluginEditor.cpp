@@ -19,6 +19,7 @@ MyAudioProcessorEditor::MyAudioProcessorEditor(MyAudioProcessor& p)
 
     comboBox.addItem("none", 1);
     comboBox.addItem("LPF", 2);
+    comboBox.addItem("FFT-LPF", 3);
     modeComboBoxAttachment.reset(new juce::AudioProcessorValueTreeState::ComboBoxAttachment(
         audioProcessor.tree, "mode", comboBox
     ));
