@@ -43,23 +43,18 @@ bool SynthVoice::canPlaySound(juce::SynthesiserSound* sound)
 
 void SynthVoice::startNote(int midiNoteNumber, float velocity, juce::SynthesiserSound* sound, int currentPitchWheelPosition)
 {
-    noteMidiNumber = midiNoteNumber;
-    frequency = juce::MidiMessage::getMidiNoteInHertz(midiNoteNumber);
-    currentAngle = 0.f;
-    angleIncrement = frequency / getSampleRate() * juce::MathConstants<float>::twoPi;
-    tailOff = 0.0;
+    // frequency = juce::MidiMessage::getMidiNoteInHertz(midiNoteNumber);
+    // tailOff = 0.0;
 }
 
 void SynthVoice::stopNote(float velocity, bool allowTailOff)
 {
-    if (allowTailOff) {
-        if (tailOff == 0.0)
-            tailOff = 1.0;
-    } else {
-        clearCurrentNote();
-        level = 0;
-        currentAngle = 0.f;
-    }
+    // if (allowTailOff) {
+    //     if (tailOff == 0.0)
+    //         tailOff = 1.0;
+    // } else {
+    //     clearCurrentNote();
+    // }
 }
 
 void SynthVoice::pitchWheelMoved(int newPitchWheelValue)

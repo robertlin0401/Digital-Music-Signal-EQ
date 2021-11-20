@@ -42,15 +42,10 @@ public:
 private:
     juce::Random random;
     float level;
-    float frequency;
-    int noteMidiNumber;
-    float currentAngle;
-    float angleIncrement;
-    float tailOff;
     int mode;
-
 	int order;
-	float cutoff, fc;       // cutoff(Hz), fc = cutoff/sampleRate
+	float cutoff, fc; // cutoff(Hz), fc = cutoff/sampleRate
+
 	std::vector <float> h;  // impulse response
 	std::vector <float> x;  // input signal
 	std::vector <float> window;
