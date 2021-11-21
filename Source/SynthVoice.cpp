@@ -13,6 +13,21 @@
 #include <cmath>
 #define MY_PI 3.14159265358979323846
 
+/***********************************************************
+ * Debug API */
+#include "atlbase.h"
+#include "atlstr.h"
+void OutputDebugPrintf(const char *strOutputString, ...)
+{
+    char strBuffer[4096] = {0};
+    va_list vlArgs;
+    va_start(vlArgs, strOutputString);
+    _vsnprintf_s(strBuffer, sizeof(strBuffer) - 1, strOutputString, vlArgs);
+    va_end(vlArgs);
+    OutputDebugString(strBuffer);
+}
+/**********************************************************/
+
 SynthVoice::SynthVoice()
 {
 	cutoff = 5000.0f;
@@ -28,23 +43,18 @@ bool SynthVoice::canPlaySound(juce::SynthesiserSound* sound)
 
 void SynthVoice::startNote(int midiNoteNumber, float velocity, juce::SynthesiserSound* sound, int currentPitchWheelPosition)
 {
-    noteMidiNumber = midiNoteNumber;
-    frequency = juce::MidiMessage::getMidiNoteInHertz(midiNoteNumber);
-    currentAngle = 0.f;
-    angleIncrement = frequency / getSampleRate() * juce::MathConstants<float>::twoPi;
-    tailOff = 0.0;
+    // frequency = juce::MidiMessage::getMidiNoteInHertz(midiNoteNumber);
+    // tailOff = 0.0;
 }
 
 void SynthVoice::stopNote(float velocity, bool allowTailOff)
 {
-    if (allowTailOff) {
-        if (tailOff == 0.0)
-            tailOff = 1.0;
-    } else {
-        clearCurrentNote();
-        level = 0;
-        currentAngle = 0.f;
-    }
+    // if (allowTailOff) {
+    //     if (tailOff == 0.0)
+    //         tailOff = 1.0;
+    // } else {
+    //     clearCurrentNote();
+    // }
 }
 
 void SynthVoice::pitchWheelMoved(int newPitchWheelValue)
@@ -81,6 +91,9 @@ void SynthVoice::renderNextBlock(juce::AudioBuffer <float> &outputBuffer, int st
             outputBuffer.addSample(0, i, value);
             outputBuffer.addSample(1, i, value);
         }
+    else if (mode == 2) { // using FFT
+        
+    }
 }
 
 void SynthVoice::genFilter()
@@ -120,6 +133,11 @@ void SynthVoice::genFilter()
 		h.at(i) /= impulse_response_sum;
 }
 
+void SynthVoice::genLowPass()
+{
+
+}
+
 void SynthVoice::setLevel(float newLevel)
 {
     level = newLevel;
@@ -128,6 +146,13 @@ void SynthVoice::setLevel(float newLevel)
 void SynthVoice::setMode(int newMode)
 {
     mode = newMode;
+    switch (mode) {
+        case 0: case 1:
+            break;
+        case 2:
+            genLowPass();
+            break;
+    }
 }
 
 void SynthVoice::setOrder(int newOrder)
