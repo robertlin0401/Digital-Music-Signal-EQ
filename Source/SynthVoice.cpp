@@ -120,7 +120,7 @@ void SynthVoice::genAllPass()
 void SynthVoice::genLowPass()
 {
     // Construct impulse response of Low Pass Filter (FIR)
-	auto fc = cutoff / getSampleRate();
+	auto fc = f1 / getSampleRate();
 	float impulse_response_sum = 0.0f;
 
 	for (int i = -(order - 1) / 2; i <= order / 2; i++) {
@@ -143,12 +143,67 @@ void SynthVoice::genLowPass()
 
 void SynthVoice::genHighPass()
 {
+    // Construct impulse response of High Pass Filter (FIR)
+	auto fc = f1 / getSampleRate();
+	float impulse_response_sum = 0.0f;
 
+	for (int i = -(order - 1) / 2; i <= order / 2; i++) {
+		if (i != 0)
+			h.push_back(sin(2 * fc * i * MY_PI) / (2 * fc * i * MY_PI));
+		else
+			h.push_back(1.0);
+	}
+
+	// Windowed-Sinc Filter
+	for (int i = 0; i < order; i++) {
+		h.at(i) = h.at(i) * w.at(i);
+		impulse_response_sum += h.at(i);
+	}
+
+    for (int i = 0; i < order; ++i) {
+        OutputDebugPrintf("(%d, %f)", i - order / 2, h.at(i));
+        if (i == order - 1)
+            OutputDebugPrintf("\n");
+        else
+            OutputDebugPrintf(", ");
+    }
+
+	// Normalized windowed-sinc filter
+	for (int i = 0; i < order; i++)
+		h.at(i) /= impulse_response_sum;
 }
 
 void SynthVoice::genBandPass()
 {
+    // Construct impulse response of Band Pass Filter (FIR)
+	auto fl = f1 / getSampleRate();
+	auto fh = f2 / getSampleRate();
+	float impulse_response_sum = 0.0f;
 
+	for (int i = -(order - 1) / 2; i <= order / 2; i++) {
+		if (i != 0)
+			h.push_back(sin(2 * fh * i * MY_PI) / (2 * fh * i * MY_PI) - sin(2 * fl * i * MY_PI) / (2 * fl * i * MY_PI));
+		else
+			h.push_back(1.0);
+	}
+
+	// Windowed-Sinc Filter
+	for (int i = 0; i < order; i++) {
+		h.at(i) = h.at(i) * w.at(i);
+		impulse_response_sum += h.at(i);
+	}
+
+    for (int i = 0; i < order; ++i) {
+        OutputDebugPrintf("(%d, %f)", i - order / 2, h.at(i));
+        if (i == order - 1)
+            OutputDebugPrintf("\n");
+        else
+            OutputDebugPrintf(", ");
+    }
+
+	// Normalized windowed-sinc filter
+	for (int i = 0; i < order; i++)
+		h.at(i) /= impulse_response_sum;
 }
 
 void SynthVoice::setLevel(float newLevel)
@@ -174,8 +229,16 @@ void SynthVoice::setOrder(int newOrder)
     genFilter();
 }
 
-void SynthVoice::setCutoff(float newCutoff)
+void SynthVoice::setF1(float newF1)
 {
-	cutoff = newCutoff;
-    genFilter();
+	f1 = newF1;
+    if (mode != 0)
+        genFilter();
+}
+
+void SynthVoice::setF2(float newF2)
+{
+    f2 = newF2;
+    if (mode == 3)
+        genFilter();
 }

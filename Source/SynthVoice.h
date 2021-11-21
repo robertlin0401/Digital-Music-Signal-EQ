@@ -31,12 +31,14 @@ public:
     
 	int getMode() { return mode; }
 	int getOrder() { return order; }
-	float getCutoff() { return cutoff; }
+	float getF1() { return f1; }
+	float getF2() { return f2; }
 
     void setLevel(float newLevel);
     void setMode(int newMode);
 	void setOrder(int newOrder);
-	void setCutoff(float newCutoff);
+	void setF1(float newF1);
+	void setF2(float newF2);
     
 private:
     void genFilter();
@@ -48,7 +50,7 @@ private:
     float level;
     int mode;
 	int order;
-	float cutoff;
+	float f1, f2;
 
     juce::Random random;
 

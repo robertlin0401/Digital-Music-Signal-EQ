@@ -29,9 +29,17 @@ MyAudioProcessor::MyAudioProcessor()
                 [](float value, int){ return juce::String(value); },
                 [](juce::String text){ return text.getFloatValue(); }),
             std::make_unique<juce::AudioParameterFloat>(
-                "f",
-                "F",
+                "f1",
+                "F1",
                 juce::NormalisableRange<float>(0.0f, 20000.0f, 1000.0f), 5000.0f,
+                juce::String(),
+                juce::AudioProcessorParameter::genericParameter,
+                [](float value, int){ return juce::String(value); },
+                [](juce::String text){ return text.getFloatValue(); }),
+            std::make_unique<juce::AudioParameterFloat>(
+                "f2",
+                "F2",
+                juce::NormalisableRange<float>(0.0f, 20000.0f, 1000.0f), 15000.0f,
                 juce::String(),
                 juce::AudioProcessorParameter::genericParameter,
                 [](float value, int){ return juce::String(value); },
@@ -174,14 +182,17 @@ void MyAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer, juce::Midi
     for (auto i = totalNumInputChannels; i < totalNumOutputChannels; ++i)
         buffer.clear (i, 0, buffer.getNumSamples());
     
-    float newCutoff = tree.getRawParameterValue("f")->load();
+    float newF1 = tree.getRawParameterValue("f1")->load();
+    float newF2 = tree.getRawParameterValue("f2")->load();
     int newOrder = tree.getRawParameterValue("order")->load();
     int newMode = tree.getRawParameterValue("mode")->load();
     for (int i = 0; i < mySynth.getNumVoices(); i++) {
         auto* myVoice = dynamic_cast<SynthVoice*>(mySynth.getVoice(i));
         myVoice->setLevel(tree.getRawParameterValue("level")->load());
-        if (myVoice->getCutoff() != newCutoff)
-            myVoice->setCutoff(newCutoff);
+        if (myVoice->getF1() != newF1)
+            myVoice->setF1(newF1);
+        if (myVoice->getF2() != newF2)
+            myVoice->setF2(newF2);
         if (myVoice->getOrder() != newOrder)
             myVoice->setOrder(newOrder);
         if (myVoice->getMode() != newMode)
