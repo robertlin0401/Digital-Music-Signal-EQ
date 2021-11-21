@@ -30,9 +30,6 @@ void OutputDebugPrintf(const char *strOutputString, ...)
 
 SynthVoice::SynthVoice()
 {
-	cutoff = 5000.0f;
-	order = 15;
-
     genFilter();
 }
 
@@ -70,45 +67,60 @@ void SynthVoice::controllerMoved(int controllerNumber, int newControllerValue)
 void SynthVoice::renderNextBlock(juce::AudioBuffer <float> &outputBuffer, int startSample, int numSamples)
 {
     float value;
-    if (mode == 0) // without filter
-        for (int i = startSample; i < (startSample + numSamples); i++) {
-            value = random.nextFloat() * 0.25f - 0.125f;
-            value *= level;
-            outputBuffer.addSample(0, i, value);
-            outputBuffer.addSample(1, i, value);
-        }
-    else if (mode == 1) // with filter
-        for (int i = startSample; i < (startSample + numSamples); i++) {
-            value = random.nextFloat() * 0.25f - 0.125f;
-            value *= level;
-			x.erase(x.begin());
-			x.push_back(value);
+    for (int i = startSample; i < (startSample + numSamples); i++) {
+        value = random.nextFloat() * 0.25f - 0.125f;
+        value *= level;
+        x.erase(x.begin());
+        x.push_back(value);
 
-			value = 0.0;
-			for (int j = 0; j < order; j++)
-				value += x.at(j) * h.at(j);
-            
-            outputBuffer.addSample(0, i, value);
-            outputBuffer.addSample(1, i, value);
-        }
-    else if (mode == 2) { // using FFT
+        value = 0.0;
+        for (int j = 0; j < order; j++)
+            value += x.at(j) * h.at(j);
         
+        outputBuffer.addSample(0, i, value);
+        outputBuffer.addSample(1, i, value);
     }
 }
 
 void SynthVoice::genFilter()
 {
-    // clear vectors
-    x.clear();
+    /* clear vectors */
     h.clear();
-    window.clear();
+    x.clear();
 
-	// Initialize the first few input signal to 0
+	/* initialize the first few input signal to 0 */
 	for (int i = 0; i < order; i++)
 		x.push_back(0);
     
-	// Construct impulse response of Low Pass Filter (FIR)
-	fc = cutoff / getSampleRate();
+    /* generate corresponding filter */
+    switch (mode) {
+        case 0:
+            genAllPass();
+            break;
+        case 1:
+            genLowPass();
+            break;
+        case 2:
+            genHighPass();
+            break;
+        case 3:
+            genBandPass();
+            break;
+    }
+
+}
+
+void SynthVoice::genAllPass()
+{
+    h.push_back(1.0f);
+    for (int i = 1; i < order; ++i)
+        h.push_back(0.0f);
+}
+
+void SynthVoice::genLowPass()
+{
+    // Construct impulse response of Low Pass Filter (FIR)
+	auto fc = cutoff / getSampleRate();
 	float impulse_response_sum = 0.0f;
 
 	for (int i = -(order - 1) / 2; i <= order / 2; i++) {
@@ -118,13 +130,9 @@ void SynthVoice::genFilter()
 			h.push_back(1.0);
 	}
 
-	// Construct a Blackman Window
-	for (int i = 0; i < order; i++)
-		window.push_back(0.42 - 0.5 * cos(2 * MY_PI * i / (order - 1)) + 0.08 * cos(4 * MY_PI * i / (order - 1))) ;
-
 	// Windowed-Sinc Filter
 	for (int i = 0; i < order; i++) {
-		h.at(i) = h.at(i) * window.at(i);
+		h.at(i) = h.at(i) * w.at(i);
 		impulse_response_sum += h.at(i);
 	}
 
@@ -133,7 +141,12 @@ void SynthVoice::genFilter()
 		h.at(i) /= impulse_response_sum;
 }
 
-void SynthVoice::genLowPass()
+void SynthVoice::genHighPass()
+{
+
+}
+
+void SynthVoice::genBandPass()
 {
 
 }
@@ -146,18 +159,18 @@ void SynthVoice::setLevel(float newLevel)
 void SynthVoice::setMode(int newMode)
 {
     mode = newMode;
-    switch (mode) {
-        case 0: case 1:
-            break;
-        case 2:
-            genLowPass();
-            break;
-    }
+    genFilter();
 }
 
 void SynthVoice::setOrder(int newOrder)
 {
 	order = newOrder;
+
+	/* blackman window */
+    w.clear();
+	for (int i = 0; i < order; i++)
+		w.push_back(0.42 - 0.5 * cos(2 * MY_PI * i / (order - 1)) + 0.08 * cos(4 * MY_PI * i / (order - 1)));
+
     genFilter();
 }
 

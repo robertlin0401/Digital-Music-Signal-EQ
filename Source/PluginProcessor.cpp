@@ -47,7 +47,7 @@ MyAudioProcessor::MyAudioProcessor()
             std::make_unique<juce::AudioParameterChoice>(
                 "mode",
                 "Mode",
-                juce::StringArray({ "none", "low-pass", "FFT-low-pass" }), 0)
+                juce::StringArray({ "none", "low-pass", "high-pass", "band-pass" }), 0)
             })
 #endif
 {

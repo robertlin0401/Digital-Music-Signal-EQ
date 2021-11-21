@@ -40,15 +40,19 @@ public:
     
 private:
     void genFilter();
+    void genAllPass();
     void genLowPass();
+    void genHighPass();
+    void genBandPass();
     
     float level;
     int mode;
 	int order;
-	float cutoff, fc; // cutoff(Hz), fc = cutoff/sampleRate
+	float cutoff;
 
     juce::Random random;
-	std::vector <float> h;  // impulse response
-	std::vector <float> x;  // input signal
-	std::vector <float> window;
+
+	std::vector <float> h; // impulse response
+	std::vector <float> x; // input signal
+	std::vector <float> w; // window function
 };
