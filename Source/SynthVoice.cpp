@@ -74,18 +74,9 @@ void SynthVoice::renderNextBlock(juce::AudioBuffer <float> &outputBuffer, int st
         x.push_back(value);
 
         value = 0.0;
+        for (int j = 0; j < x.size(); j++)
+            value += x.at(j) * h.at(j);
 
-		switch (mode) {
-			case 3:
-				for (int j = 0; j < h3.size(); j++)
-					value += x.at(j) * h3.at(j);
-				break;
-			default:
-				for (int j = 0; j < order; j++)
-					value += x.at(j) * h.at(j);
-				break;
-		}
-        
         outputBuffer.addSample(0, i, value);
         outputBuffer.addSample(1, i, value);
     }
@@ -96,10 +87,6 @@ void SynthVoice::genFilter()
     /* clear vectors */
     h.clear();
     x.clear();
-
-	/* initialize the first few input signal to 0 */
-	for (int i = 0; i < order*2; i++)
-		x.push_back(0);
     
     /* generate corresponding filter */
     switch (mode) {
@@ -121,16 +108,21 @@ void SynthVoice::genFilter()
 
 void SynthVoice::genAllPass()
 {
-	std::vector<float>().swap(h);
+	/* initialize the first few input signal to 0 */
+	for (int i = 0; i < order; i++)
+		x.push_back(0);
 
+    /* Construct impulse response of All Pass Filter (FIR) */
     h.push_back(1.0f);
-    for (int i = 1; i < order; ++i)
+    for (int i = 1; i < order; i++)
         h.push_back(0.0f);
 }
 
 void SynthVoice::genLowPass()
 {
-	std::vector<float>().swap(h);
+	/* initialize the first few input signal to 0 */
+	for (int i = 0; i < order; i++)
+		x.push_back(0);
 
     /* Construct impulse response of Low Pass Filter (FIR) */
 	auto fc = f1 / getSampleRate();
@@ -156,7 +148,9 @@ void SynthVoice::genLowPass()
 
 void SynthVoice::genHighPass()
 {
-	std::vector<float>().swap(h);
+	/* initialize the first few input signal to 0 */
+	for (int i = 0; i < order; i++)
+		x.push_back(0);
 
     /* Construct impulse response of Low Pass Filter (FIR) first */
 	auto fc = f1 / getSampleRate();
@@ -195,11 +189,12 @@ void SynthVoice::genHighPass()
 
 void SynthVoice::genBandPass()
 {
-	std::vector<float>().swap(h);
-	std::vector<float>().swap(h2);
-	std::vector<float>().swap(h3);
+	/* initialize the first few input signal to 0 */
+	for (int i = 0; i < 2 * order - 1; i++)
+		x.push_back(0);
 
 	/* Construct impulse response of two Low Pass Filter (FIR) first */
+	std::vector<float> low, high;
 	auto fh = f1 / getSampleRate();
 	auto fl = f2 / getSampleRate();
 	float impulse_response_sum_LPF = 0.0f;
@@ -207,59 +202,42 @@ void SynthVoice::genBandPass()
 
 	for (int i = -(order - 1) / 2; i <= order / 2; i++) {
 		if (i != 0) {
-			h.push_back( sin(2 * fl * i * MY_PI) / (2 * fl * i * MY_PI));
-			h2.push_back(sin(2 * fh * i * MY_PI) / (2 * fh * i * MY_PI));
-		}
-		else {
-			h.push_back(1.0);
-			h2.push_back(1.0);
+			low.push_back (sin(2 * fl * i * MY_PI) / (2 * fl * i * MY_PI));
+			high.push_back(sin(2 * fh * i * MY_PI) / (2 * fh * i * MY_PI));
+		} else {
+			low.push_back(1.0);
+			high.push_back(1.0);
 		}
 	}
 
 	/* Windowed-Sinc Filter */
 	for (int i = 0; i < order; i++) {
-		h.at(i)  *= w.at(i);
-		h2.at(i) *= w.at(i);
-		impulse_response_sum_LPF += h.at(i);
-		impulse_response_sum_HPF += h2.at(i);
+		low.at(i)  *= w.at(i);
+		high.at(i) *= w.at(i);
+		impulse_response_sum_LPF += low.at(i);
+		impulse_response_sum_HPF += high.at(i);
 	}
-
-	/* for (int i = 0; i < order; ++i) {
-		 OutputDebugPrintf("(%d, %f)", i - order / 2, h.at(i));
-		 if (i == order - 1)
-			 OutputDebugPrintf("\n");
-		 else
-			 OutputDebugPrintf(", ");
-	 }*/
 
 	/* Normalized windowed-sinc filter */
 	for (int i = 0; i < order; i++) {
-		h.at(i)  /= impulse_response_sum_LPF;
-		h2.at(i) /= impulse_response_sum_HPF;
+		low.at(i)  /= impulse_response_sum_LPF;
+		high.at(i) /= impulse_response_sum_HPF;
 	}
 
 	/* Using spectral inversion to convert LPF into a high-pass one. */
 	for (int i = 0; i < order; i++)
-		h2.at(i) *= -1;
-	h2.at(order / 2) += 1;
-
-	
+		high.at(i) *= -1;
+	high.at(order / 2) += 1;
 
 	/* Create a BPF by convolving the two filters.(LPF and HPF) */
-	int const nh = h.size();
-	int const nh2 = h2.size();
-	int const n = nh + nh2 - 1;
+	for (int i = 0; i < 2 * order - 1; i++)
+		h.push_back(0.0);
 
-	for (int i = 0; i < n; i++)
-	{
-		h3.push_back(0.0);
-	}
-
-	for (auto i(0); i < n; ++i) {
-		int const jmn = (i >= nh2 - 1) ? i - (nh2 - 1) : 0;
-		int const jmx = (i < nh - 1) ? i : nh - 1;
-		for (auto j(jmn); j <= jmx; ++j) {
-			h3.at(i) += (h.at(j) * h2.at(i - j));
+	for (int i = 0; i < 2 * order - 1; i++) {
+		const int jmn = (i >= order - 1) ? i - (order - 1) : 0;
+		const int jmx = (i >= order - 1) ? order - 1       : i;
+		for (int j = jmn; j <= jmx; j++) {
+			h.at(i) += (low.at(j) * high.at(i - j));
 		}
 	}
 }
