@@ -52,6 +52,22 @@ MyAudioProcessor::MyAudioProcessor()
                 juce::AudioProcessorParameter::genericParameter,
                 [](float value, int){ return juce::String(value); },
                 [](juce::String text){ return text.getFloatValue(); }),
+            std::make_unique<juce::AudioParameterFloat>(
+                "q",
+                "Q",
+                juce::NormalisableRange<float>(0.1f, 2.0f, 0.1f), 1.0f,
+                juce::String(),
+                juce::AudioProcessorParameter::genericParameter,
+                [](float value, int){ return juce::String(value); },
+                [](juce::String text){ return text.getFloatValue(); }),
+            std::make_unique<juce::AudioParameterFloat>(
+                "gain",
+                "Gain",
+                juce::NormalisableRange<float>(1.0f, 10.0f, 0.5f), 2.0f,
+                juce::String(),
+                juce::AudioProcessorParameter::genericParameter,
+                [](float value, int){ return juce::String(value); },
+                [](juce::String text){ return text.getFloatValue(); }),
             std::make_unique<juce::AudioParameterChoice>(
                 "mode",
                 "Mode",
@@ -186,6 +202,8 @@ void MyAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer, juce::Midi
     float newF2 = tree.getRawParameterValue("f2")->load();
     int newOrder = tree.getRawParameterValue("order")->load();
     int newMode = tree.getRawParameterValue("mode")->load();
+    float newQ = tree.getRawParameterValue("q")->load();
+    float newGain = tree.getRawParameterValue("gain")->load();
     for (int i = 0; i < mySynth.getNumVoices(); i++) {
         auto* myVoice = dynamic_cast<SynthVoice*>(mySynth.getVoice(i));
         myVoice->setLevel(tree.getRawParameterValue("level")->load());
@@ -197,6 +215,10 @@ void MyAudioProcessor::processBlock(juce::AudioBuffer<float>& buffer, juce::Midi
             myVoice->setOrder(newOrder);
         if (myVoice->getMode() != newMode)
             myVoice->setMode(newMode);
+        if (myVoice->getQ() != newQ)
+            myVoice->setQ(newQ);
+        if (myVoice->getGain() != newGain)
+            myVoice->setGain(newGain);
     }
     mySynth.renderNextBlock(buffer, midiMessages, 0, buffer.getNumSamples());
     singleChannelSampleFifo.update(buffer);

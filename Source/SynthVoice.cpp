@@ -274,16 +274,16 @@ void SynthVoice::genOthers()
     auto coef = std::array<float, 6> {0};
     switch (mode) {
         case 4:
-            coef = juce::dsp::IIR::ArrayCoefficients<float>::makePeakFilter(getSampleRate(), f1, 1, 2);
+            coef = juce::dsp::IIR::ArrayCoefficients<float>::makePeakFilter(getSampleRate(), f1, Q, gain);
             break;
         case 5:
-            coef = juce::dsp::IIR::ArrayCoefficients<float>::makeNotch(getSampleRate(), f1, 1);
+            coef = juce::dsp::IIR::ArrayCoefficients<float>::makeNotch(getSampleRate(), f1, Q);
             break;
         case 6:
-            coef = juce::dsp::IIR::ArrayCoefficients<float>::makeLowShelf(getSampleRate(), f1, 1, 2);
+            coef = juce::dsp::IIR::ArrayCoefficients<float>::makeLowShelf(getSampleRate(), f1, Q, gain);
             break;
         case 7:
-            coef = juce::dsp::IIR::ArrayCoefficients<float>::makeHighShelf(getSampleRate(), f1, 1, 2);
+            coef = juce::dsp::IIR::ArrayCoefficients<float>::makeHighShelf(getSampleRate(), f1, Q, gain);
             break;
     }
 
@@ -315,7 +315,8 @@ void SynthVoice::setOrder(int newOrder)
 	for (int i = 0; i < order; i++)
 		w.push_back(0.42 - 0.5 * cos(2 * MY_PI * i / (order - 1)) + 0.08 * cos(4 * MY_PI * i / (order - 1)));
 
-    genFilter();
+    if (mode <= 3)
+        genFilter();
 }
 
 void SynthVoice::setF1(float newF1)
@@ -329,5 +330,19 @@ void SynthVoice::setF2(float newF2)
 {
     f2 = newF2;
     if (mode == 3)
+        genFilter();
+}
+
+void SynthVoice::setQ(float newQ)
+{
+    Q = newQ;
+    if (mode > 3)
+        genFilter();
+}
+
+void SynthVoice::setGain(float newGain)
+{
+    gain = newGain;
+    if (mode > 3 && mode != 5)
         genFilter();
 }

@@ -48,7 +48,9 @@ SliderContainer::SliderContainer(MyAudioProcessor &p)
       levelSlider(p, "level"),
       f1Slider(p, "f1"),
       f2Slider(p, "f2"),
-      orderSlider(p, "order")
+      orderSlider(p, "order"),
+      qSlider(p, "q"),
+      gainSlider(p, "gain")
 
 {    
     for (auto &slider : sliders) {
