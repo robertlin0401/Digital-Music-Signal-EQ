@@ -54,7 +54,8 @@ private:
 
     juce::Random random;
 
-	std::vector <float> h;  // impulse response
-	std::vector <float> x;  // input signal
-	std::vector <float> w;  // window function
+	std::vector <float> h1, h2;  // impulse response
+	std::vector <float> x;       // input signal
+	std::vector <float> y;       // output signal
+	std::vector <float> w;       // window function
 };

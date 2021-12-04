@@ -75,7 +75,12 @@ void SynthVoice::renderNextBlock(juce::AudioBuffer <float> &outputBuffer, int st
 
         value = 0.0;
         for (int j = 0; j < x.size(); j++)
-            value += x.at(j) * h.at(j);
+            value += x.at(j) * h1.at(j);
+        for (int j = 0; j < y.size(); j++)
+            value -= y.at(j) * h2.at(j);
+
+        y.erase(y.begin());
+        y.push_back(value);
 
         outputBuffer.addSample(0, i, value);
         outputBuffer.addSample(1, i, value);
@@ -85,8 +90,10 @@ void SynthVoice::renderNextBlock(juce::AudioBuffer <float> &outputBuffer, int st
 void SynthVoice::genFilter()
 {
     /* clear vectors */
-    h.clear();
+    h1.clear();
+    h2.clear();
     x.clear();
+    y.clear();
     
     /* generate corresponding filter */
     switch (mode) {
@@ -112,10 +119,13 @@ void SynthVoice::genAllPass()
 	for (int i = 0; i < order; i++)
 		x.push_back(0);
 
+    y.push_back(0);
+    h2.push_back(0);
+
     /* Construct impulse response of All Pass Filter (FIR) */
-    h.push_back(1.0f);
+    h1.push_back(1.0f);
     for (int i = 1; i < order; i++)
-        h.push_back(0.0f);
+        h1.push_back(0.0f);
 }
 
 void SynthVoice::genLowPass()
@@ -124,26 +134,29 @@ void SynthVoice::genLowPass()
 	for (int i = 0; i < order; i++)
 		x.push_back(0);
 
+    y.push_back(0);
+    h2.push_back(0);
+
     /* Construct impulse response of Low Pass Filter (FIR) */
 	auto fc = f1 / getSampleRate();
 	float impulse_response_sum = 0.0f;
 
 	for (int i = -(order - 1) / 2; i <= order / 2; i++) {
 		if (i != 0)
-			h.push_back(sin(2 * fc * i * MY_PI) / (2 * fc * i * MY_PI));
+			h1.push_back(sin(2 * fc * i * MY_PI) / (2 * fc * i * MY_PI));
 		else
-			h.push_back(1.0);
+			h1.push_back(1.0);
 	}
 
 	/* Windowed-Sinc Filter */
 	for (int i = 0; i < order; i++) {
-		h.at(i) = h.at(i) * w.at(i);
-		impulse_response_sum += h.at(i);
+		h1.at(i) = h1.at(i) * w.at(i);
+		impulse_response_sum += h1.at(i);
 	}
 
 	/* Normalized windowed-sinc filter */
 	for (int i = 0; i < order; i++)
-		h.at(i) /= impulse_response_sum;
+		h1.at(i) /= impulse_response_sum;
 }
 
 void SynthVoice::genHighPass()
@@ -152,21 +165,24 @@ void SynthVoice::genHighPass()
 	for (int i = 0; i < order; i++)
 		x.push_back(0);
 
+    y.push_back(0);
+    h2.push_back(0);
+
     /* Construct impulse response of Low Pass Filter (FIR) first */
 	auto fc = f1 / getSampleRate();
 	float impulse_response_sum = 0.0f;
 
 	for (int i = -(order - 1) / 2; i <= order / 2; i++) {
 		if (i != 0)
-			h.push_back(sin(2 * fc * i * MY_PI) / (2 * fc * i * MY_PI));
+			h1.push_back(sin(2 * fc * i * MY_PI) / (2 * fc * i * MY_PI));
 		else
-			h.push_back(1.0);
+			h1.push_back(1.0);
 	}
 
 	/* Windowed-Sinc Filter */
 	for (int i = 0; i < order; i++) {
-		h.at(i) = h.at(i) * w.at(i);
-		impulse_response_sum += h.at(i);
+		h1.at(i) = h1.at(i) * w.at(i);
+		impulse_response_sum += h1.at(i);
 	}
 
     /*for (int i = 0; i < order; ++i) {
@@ -179,12 +195,12 @@ void SynthVoice::genHighPass()
 
 	/* Normalized windowed-sinc filter */
 	for (int i = 0; i < order; i++)
-		h.at(i) /= impulse_response_sum;
+		h1.at(i) /= impulse_response_sum;
 
 	/* Then using spectral inversion to convert it into a high-pass one. */
 	for (int i = 0; i < order; i++)
-		h.at(i) *= -1;
-	h.at(order / 2) += 1;
+		h1.at(i) *= -1;
+	h1.at(order / 2) += 1;
 }
 
 void SynthVoice::genBandPass()
@@ -192,6 +208,9 @@ void SynthVoice::genBandPass()
 	/* initialize the first few input signal to 0 */
 	for (int i = 0; i < 2 * order - 1; i++)
 		x.push_back(0);
+
+    y.push_back(0);
+    h2.push_back(0);
 
 	/* Construct impulse response of two Low Pass Filter (FIR) first */
 	std::vector<float> low, high;
@@ -231,13 +250,13 @@ void SynthVoice::genBandPass()
 
 	/* Create a BPF by convolving the two filters.(LPF and HPF) */
 	for (int i = 0; i < 2 * order - 1; i++)
-		h.push_back(0.0);
+		h1.push_back(0.0);
 
 	for (int i = 0; i < 2 * order - 1; i++) {
 		const int jmn = (i >= order - 1) ? i - (order - 1) : 0;
 		const int jmx = (i >= order - 1) ? order - 1       : i;
 		for (int j = jmn; j <= jmx; j++) {
-			h.at(i) += (low.at(j) * high.at(i - j));
+			h1.at(i) += (low.at(j) * high.at(i - j));
 		}
 	}
 }
