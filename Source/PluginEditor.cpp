@@ -21,6 +21,10 @@ MyAudioProcessorEditor::MyAudioProcessorEditor(MyAudioProcessor& p)
     comboBox.addItem("LPF", 2);
     comboBox.addItem("HPF", 3);
     comboBox.addItem("BPF", 4);
+    comboBox.addItem("PF", 5);
+    comboBox.addItem("NF", 6);
+    comboBox.addItem("LSF", 7);
+    comboBox.addItem("HSF", 8);
     modeComboBoxAttachment.reset(new juce::AudioProcessorValueTreeState::ComboBoxAttachment(
         audioProcessor.tree, "mode", comboBox
     ));

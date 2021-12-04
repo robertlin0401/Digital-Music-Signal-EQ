@@ -46,6 +46,7 @@ private:
     void genLowPass();
     void genHighPass();
     void genBandPass();
+    void genOthers();
     
     float level;
     int mode;

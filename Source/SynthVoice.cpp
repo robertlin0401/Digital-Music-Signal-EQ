@@ -109,6 +109,9 @@ void SynthVoice::genFilter()
         case 3:
             genBandPass();
             break;
+        default:
+            genOthers();
+            break;
     }
 
 }
@@ -259,6 +262,37 @@ void SynthVoice::genBandPass()
 			h1.at(i) += (low.at(j) * high.at(i - j));
 		}
 	}
+}
+
+void SynthVoice::genOthers()
+{
+    /* initialize the first few input and output signal to 0 */
+    x = {0, 0, 0};
+    y = {0, 0};
+
+    /* Call JUCE API to get coefficients of the corresponding filter */
+    auto coef = std::array<float, 6> {0};
+    switch (mode) {
+        case 4:
+            coef = juce::dsp::IIR::ArrayCoefficients<float>::makePeakFilter(getSampleRate(), f1, 1, 2);
+            break;
+        case 5:
+            coef = juce::dsp::IIR::ArrayCoefficients<float>::makeNotch(getSampleRate(), f1, 1);
+            break;
+        case 6:
+            coef = juce::dsp::IIR::ArrayCoefficients<float>::makeLowShelf(getSampleRate(), f1, 1, 2);
+            break;
+        case 7:
+            coef = juce::dsp::IIR::ArrayCoefficients<float>::makeHighShelf(getSampleRate(), f1, 1, 2);
+            break;
+    }
+
+    /* Construct impulse response from coefficients */
+    h1.push_back(coef[2] / coef[3]);
+    h1.push_back(coef[1] / coef[3]);
+    h1.push_back(coef[0] / coef[3]);
+    h2.push_back(coef[5] / coef[3]);
+    h2.push_back(coef[4] / coef[3]);
 }
 
 void SynthVoice::setLevel(float newLevel)
